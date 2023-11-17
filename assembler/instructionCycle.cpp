@@ -1,11 +1,19 @@
 #include <iostream>
 #include <array>
+#include <fstream>
 
-void fetch(){
+using namespace std;
 
+void fetch(int ci, ifstream store){
+    string instruction;
+    for(int lineNumber = 0; getline(store,instruction) && lineNumber<= ci; lineNumber++){
+        if(lineNumber == ci){
+            decode(instruction);
+        }
+    }
 }
 
-std::array<int,2> decode(){
+array<int,2> decode(string instruction){
     //First five characters of binary are line of store to be operated on, next 8 are ignored, next 3 are instruction, rest are ignored
     //000 - JMP S (Jump to instruction obtained from memory address S)
     //100 - JRP S (Jump to instruction at the program counter plus relative value from memory address S) 
@@ -16,7 +24,7 @@ std::array<int,2> decode(){
     //111 - STP (Stop)
 }
 
-void execute(int accumulator, std::array<int,2> instruction){
+void execute(int accumulator, array<int,2> instruction){
 
 }
 

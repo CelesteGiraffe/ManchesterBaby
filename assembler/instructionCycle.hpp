@@ -1,10 +1,13 @@
 #include <iostream>
 #include <array>
+#include <fstream>
 
-void fetch();
+using namespace std;
 
-std::array<int,2> decode();
+void fetch(int ci, ifstream store);
 
-void execute(int accumulator, std::array<int,2> instruction);
+std::array<int,2> decode(string instruction);
+
+void execute(int accumulator, array<int,2> instruction);
 
 void printout();
