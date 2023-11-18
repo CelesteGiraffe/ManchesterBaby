@@ -3,7 +3,7 @@
 
 using namespace std;
 
-int binToDec(string bin){
+string binToDec(string bin){
     int sum;
     int binaryMult = 1;
     int hold;
@@ -15,7 +15,7 @@ int binToDec(string bin){
             sum += hold;
             binaryMult *= 2;
         }
-        return sum;
+        return to_string(sum);
 }
 
 string binToMne(string bin){
