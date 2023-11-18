@@ -23,7 +23,8 @@ array<string,2> decode(string instruction){
     //011 - CMP (Skip if accumulator is negative)
     //111 - STP (Stop)
 
-    char* splitInstruct = instruction.data();
+    string operand = instruction.substr(0, 4);
+    string mnemonic = instruction.substr(13, 15);
 }
 
 void execute(int accumulator, array<int,2> instruction){
