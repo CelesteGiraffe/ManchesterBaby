@@ -17,3 +17,38 @@ int binToDec(string bin){
         }
         return sum;
 }
+
+string binToMne(string bin){
+
+    int binInt = stoi(bin);
+
+    switch(binInt){
+        case 0:
+            return "JMP";
+
+        case 100:
+            return "JRP";
+        
+        case 10:
+            return "LDN";
+        
+        case 110:
+
+            return "STO";
+        
+        case 1:
+        case 101:
+
+            return "SUB";
+
+        case 11:
+
+            return "CMP";
+
+        case 111:
+
+            return "STP";
+        
+    }
+    
+}
