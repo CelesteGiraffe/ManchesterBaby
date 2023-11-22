@@ -35,14 +35,30 @@ std::vector<Token> lex(const std::string &input)
                 tokens.push_back({currentType, tokenText});
                 tokenText.clear();
             }
+            currentType = TokenType::Operand;
         }
         else if (ch == ';')
         {
-            // After this is a comment
+            if (!tokenText.empty())
+            {
+                tokens.push_back({currentType, tokenText});
+                tokenText.clear();
+            }
+            currentType = TokenType::Comment;
         }
         else if (ch == '\n')
         {
-            // After this is End of line
+            if (!tokenText.empty())
+            {
+                tokens.push_back({currentType, tokenText});
+                tokenText.clear();
+            }
+            tokens.push_back({TokenType::EndOfLine, "\n"});
+            currentType = TokenType::Mnemonic;
+        }
+        else
+        {
+            tokenText += ch;
         }
     }
     // Get's the last token if it was not an empty line
