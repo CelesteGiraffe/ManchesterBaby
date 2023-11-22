@@ -33,7 +33,7 @@ std::vector<Token> lex(const std::string &input)
     {
         if (handleLabel(ch, tokenText, tokens, isLabelStart) ||
             handleSeparator(ch, tokenText, tokens, currentType) ||
-            handleSpaceOrTab(ch, tokenText, tokens, currentType) ||
+            handleSpaceOrTab(ch, tokenText, tokens, currentType, isLabelStart) ||
             handleComment(ch, tokenText, tokens, currentType) ||
             handleNewLine(ch, tokenText, tokens, currentType, isLabelStart))
         {
@@ -86,16 +86,26 @@ bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens
     return false;
 }
 
-bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType)
+bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart)
 {
     if (ch == ' ' || ch == '\t')
     {
+        // Ignore spaces or tabs at the start of a line
+        if (isLabelStart && tokenText.empty())
+        {
+            return false;
+        }
+
         if (!tokenText.empty())
         {
             tokens.push_back({currentType, tokenText});
             tokenText.clear();
         }
-        currentType = TokenType::Operand;
+        // Set to Operand only if it's not the start of a line
+        if (!isLabelStart)
+        {
+            currentType = TokenType::Operand;
+        }
         return true;
     }
     return false;
