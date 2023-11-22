@@ -3,13 +3,13 @@
 
 enum class TokenType
 {
-    Mnemonic,
-    Operand,
-    Label,
-    Directive,
-    Separator,
-    Comment,
-    EndOfLine
+    Mnemonic,  // Instruction example MOV
+    Operand,   // Things passed to a Mnemonic
+    Label,     // Marks positions in the code
+    Directive, // Controls how the assimbly processes data (might not be needed for the project)
+    Separator, // Separates operands
+    Comment,   // After a ; it's a comment that dinotes what's being done in the code
+    EndOfLine  // Executes a single command with a carrage return.
 };
 
 struct Token
@@ -33,7 +33,7 @@ std::vector<Token> lex(const std::string &input)
     {
         if (handleLabel(ch, tokenText, tokens, isLabelStart) ||
             handleSeparator(ch, tokenText, tokens, currentType) ||
-            handleSpaceOrTab(ch, tokenText, tokens, currentType) ||
+            handleSpaceOrTab(ch, tokenText, tokens, currentType, isLabelStart) ||
             handleComment(ch, tokenText, tokens, currentType) ||
             handleNewLine(ch, tokenText, tokens, currentType, isLabelStart))
         {
@@ -86,16 +86,26 @@ bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens
     return false;
 }
 
-bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType)
+bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart)
 {
     if (ch == ' ' || ch == '\t')
     {
+        // Ignore spaces or tabs at the start of a line
+        if (isLabelStart && tokenText.empty())
+        {
+            return false;
+        }
+
         if (!tokenText.empty())
         {
             tokens.push_back({currentType, tokenText});
             tokenText.clear();
         }
-        currentType = TokenType::Operand;
+        // Set to Operand only if it's not the start of a line
+        if (!isLabelStart)
+        {
+            currentType = TokenType::Operand;
+        }
         return true;
     }
     return false;
