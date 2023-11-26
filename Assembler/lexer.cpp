@@ -18,6 +18,13 @@ struct Token
     std::string text;
 };
 
+// function declirations
+bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart);
+bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType);
+bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart);
+bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType);
+bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart);
+
 // pass by refrence with &
 std::vector<Token> lex(const std::string &input)
 {

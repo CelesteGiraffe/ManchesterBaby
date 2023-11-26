@@ -1,6 +1,13 @@
 #include <vector>
 #include <string>
 #include "lexer.h"
+#include <iostream>
+
+// fuction declerations
+void checkMnemonicsType(std::string &mnemonic);
+void processLine(const std::string &mnemonic, const std::string &operand,
+                 const std::string &label, const std::string &directive,
+                 const std::string &separator, const std::string &comment);
 
 void parseTokens(const std::vector<Token> &tokens)
 {
@@ -12,7 +19,7 @@ void parseTokens(const std::vector<Token> &tokens)
         {
         case TokenType::Mnemonic:
             mnemonic = token.text;
-            checkMnemonicsType(mnemonic);
+            // checkMnemonicsType(mnemonic);
             break;
         case TokenType::Operand:
             operand = token.text;
@@ -54,4 +61,23 @@ void processLine(const std::string &mnemonic, const std::string &operand,
 
 void checkMnemonicsType(std::string &mnemonic)
 {
+    // List of valid mnemonics for the Manchester Baby
+    const std::string validMnemonics[] = {"JMP", "JRP", "LDN", "STO", "SUB", "CMP", "STP"};
+
+    // Check if the mnemonic is in the list of valid mnemonics
+    bool isValid = false;
+    for (const auto &validMnemonic : validMnemonics)
+    {
+        if (mnemonic == validMnemonic)
+        {
+            isValid = true;
+            break;
+        }
+    }
+
+    // Handle the case where the mnemonic is not valid
+    if (!isValid)
+    {
+        std::cerr << "Invalid mnemonic: " << mnemonic << std::endl;
+    }
 }
