@@ -2,4 +2,4 @@
 #include "lexer.h"
 #include <vector>
 
-void parseTokens(std::vector<Token>);
+void parseTokens(const std::vector<Token> &tokens);
