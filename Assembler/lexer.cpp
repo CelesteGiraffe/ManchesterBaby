@@ -36,7 +36,7 @@ std::vector<Token> lex(const std::string &input)
 {
     std::vector<Token> tokens;
     std::string tokenText;
-    TokenType currentType = TokenType::Unknown; // Start as Unknown
+    TokenType currentType = TokenType::Unknown;
     bool isLabelStart = true;
     bool inComment = false;
 
@@ -55,7 +55,6 @@ std::vector<Token> lex(const std::string &input)
             tokenText += ch;
             if (currentType == TokenType::Unknown)
             {
-                // Determine type based on first non-space character
                 currentType = determineTokenType(tokenText, isLabelStart);
             }
         }
@@ -110,7 +109,7 @@ bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &token
             {
                 tokens.push_back({currentType, tokenText});
                 tokenText.clear();
-                currentType = TokenType::Unknown; // Reset the type after a token is completed
+                currentType = TokenType::Unknown;
             }
         }
         else
@@ -184,7 +183,8 @@ TokenType determineTokenType(const std::string &tokenText, bool isLabelStart)
     if (std::all_of(tokenText.begin(), tokenText.end(), ::isdigit))
         return TokenType::Operand; // Assuming all numbers are operands here
 
-    return TokenType::Unknown; // Default to Operand
+    // if(tokenText.lenght() <= 3) need to see if it's a variable and that normaly would be done if it has a space after once that was none of the other.
+    return TokenType::Unknown; // Default to unkown
 }
 std::string tokenTypeToString(TokenType type)
 {
