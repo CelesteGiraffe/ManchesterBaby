@@ -1,5 +1,7 @@
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <iostream>
 
 enum class TokenType
 {
@@ -18,6 +20,9 @@ struct Token
     TokenType type;
     std::string text;
 };
+
+std::vector<std::string> mnemonics = {"JMP", "JRP", "LDN", "STO", "SUB", "CPM", "STP"};
+std::vector<std::string> directives = {"VAR"};
 
 // function declirations
 bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType);
@@ -152,21 +157,32 @@ bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, 
 }
 TokenType determineTokenType(const std::string &tokenText, bool isLabelStart)
 {
+
     if (tokenText.empty())
         return TokenType::Unknown;
 
-    // Check for comment
     if (tokenText[0] == ';')
         return TokenType::Comment;
 
-    // Check for label
     if (isLabelStart && tokenText.back() == ':')
         return TokenType::Label;
 
-    // Add more specific checks for mnemonics, directives, etc., as per your language rules
+    for (const auto &mnemonic : mnemonics)
+    {
+        if (tokenText == mnemonic)
+            return TokenType::Mnemonic;
+    }
 
-    // Default to Operand if none of the above
-    return TokenType::Operand;
+    for (const auto &directive : directives)
+    {
+        if (tokenText == directive)
+            return TokenType::Directive;
+    }
+
+    if (std::all_of(tokenText.begin(), tokenText.end(), ::isdigit))
+        return TokenType::Operand; // Assuming all numbers are operands here
+
+    return TokenType::Operand; // Default to Operand
 }
 std::string tokenTypeToString(TokenType type)
 {
