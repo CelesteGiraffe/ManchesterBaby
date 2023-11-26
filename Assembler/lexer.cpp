@@ -26,7 +26,7 @@ std::vector<std::string> directives = {"VAR"};
 
 // function declirations
 bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType);
-bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType);
+bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment);
 bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart, bool &inComment);
 bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment);
 bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart, bool &inComment);
@@ -43,7 +43,7 @@ std::vector<Token> lex(const std::string &input)
     for (char ch : input)
     {
         if (handleLabel(ch, tokenText, tokens, isLabelStart, currentType) ||
-            handleSeparator(ch, tokenText, tokens, currentType) ||
+            handleSeparator(ch, tokenText, tokens, currentType, inComment) ||
             handleSpaceOrTab(ch, tokenText, tokens, currentType, isLabelStart, inComment) ||
             handleComment(ch, tokenText, tokens, currentType, inComment) ||
             handleNewLine(ch, tokenText, tokens, currentType, isLabelStart, inComment))
@@ -53,7 +53,7 @@ std::vector<Token> lex(const std::string &input)
         else
         {
             tokenText += ch;
-            if (currentType == TokenType::Unknown && !isspace(ch) && tokenText.length() == 1)
+            if (currentType == TokenType::Unknown)
             {
                 // Determine type based on first non-space character
                 currentType = determineTokenType(tokenText, isLabelStart);
@@ -85,9 +85,9 @@ bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bo
     }
     return false;
 }
-bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType)
+bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
 {
-    if (ch == ',')
+    if (ch == ',' && !inComment)
     {
         if (!tokenText.empty())
         {
@@ -157,7 +157,6 @@ bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, 
 }
 TokenType determineTokenType(const std::string &tokenText, bool isLabelStart)
 {
-
     if (tokenText.empty())
         return TokenType::Unknown;
 
@@ -167,22 +166,25 @@ TokenType determineTokenType(const std::string &tokenText, bool isLabelStart)
     if (isLabelStart && tokenText.back() == ':')
         return TokenType::Label;
 
-    for (const auto &mnemonic : mnemonics)
+    if (tokenText.length() == 3)
     {
-        if (tokenText == mnemonic)
-            return TokenType::Mnemonic;
-    }
+        for (const auto &mnemonic : mnemonics)
+        {
+            if (tokenText == mnemonic)
+                return TokenType::Mnemonic;
+        }
 
-    for (const auto &directive : directives)
-    {
-        if (tokenText == directive)
-            return TokenType::Directive;
+        for (const auto &directive : directives)
+        {
+            if (tokenText == directive)
+                return TokenType::Directive;
+        }
     }
 
     if (std::all_of(tokenText.begin(), tokenText.end(), ::isdigit))
         return TokenType::Operand; // Assuming all numbers are operands here
 
-    return TokenType::Operand; // Default to Operand
+    return TokenType::Unknown; // Default to Operand
 }
 std::string tokenTypeToString(TokenType type)
 {
