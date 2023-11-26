@@ -9,7 +9,8 @@ enum class TokenType
     Directive, // Controls how the assimbly processes data (might not be needed for the project)
     Separator, // Separates operands
     Comment,   // After a ; it's a comment that dinotes what's being done in the code
-    EndOfLine  // Executes a single command with a carrage return.
+    EndOfLine, // Executes a single command with a carrage return.
+    Unknown
 };
 
 struct Token
@@ -19,47 +20,49 @@ struct Token
 };
 
 // function declirations
-bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart);
+bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType);
 bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType);
-bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart);
-bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType);
-bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart);
+bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart, bool &inComment);
+bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment);
+bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart, bool &inComment);
+TokenType determineTokenType(const std::string &tokenText, bool isLabelStart);
 
-// pass by refrence with &
 std::vector<Token> lex(const std::string &input)
 {
-    // Example Command: START:    LDN NUM01   ; Copy variable to accumulator (negated)
-
     std::vector<Token> tokens;
     std::string tokenText;
-    // Set's the default type to mnemonic
-    TokenType currentType = TokenType::Mnemonic;
+    TokenType currentType = TokenType::Unknown; // Start as Unknown
     bool isLabelStart = true;
+    bool inComment = false;
 
     for (char ch : input)
     {
-        if (handleLabel(ch, tokenText, tokens, isLabelStart) ||
+        if (handleLabel(ch, tokenText, tokens, isLabelStart, currentType) ||
             handleSeparator(ch, tokenText, tokens, currentType) ||
-            handleSpaceOrTab(ch, tokenText, tokens, currentType, isLabelStart) ||
-            handleComment(ch, tokenText, tokens, currentType) ||
-            handleNewLine(ch, tokenText, tokens, currentType, isLabelStart))
+            handleSpaceOrTab(ch, tokenText, tokens, currentType, isLabelStart, inComment) ||
+            handleComment(ch, tokenText, tokens, currentType, inComment) ||
+            handleNewLine(ch, tokenText, tokens, currentType, isLabelStart, inComment))
         {
-            continue; // Skip the rest of the loop if any condition was handled
+            continue;
         }
         else
         {
             tokenText += ch;
+            if (currentType == TokenType::Unknown && !isspace(ch) && tokenText.length() == 1)
+            {
+                // Determine type based on first non-space character
+                currentType = determineTokenType(tokenText, isLabelStart);
+            }
         }
     }
-    // Get's the last token if it was not an empty line
+
     if (!tokenText.empty())
     {
         tokens.push_back({currentType, tokenText});
     }
     return tokens;
 }
-
-bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart)
+bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType)
 {
     if (isLabelStart && ch != ' ' && ch != '\t')
     {
@@ -69,14 +72,14 @@ bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bo
             {
                 tokens.push_back({TokenType::Label, tokenText});
                 tokenText.clear();
+                currentType = TokenType::Unknown;
             }
             isLabelStart = false;
-            return true; // Label was handled
+            return true;
         }
     }
-    return false; // No label to handle
+    return false;
 }
-
 bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType)
 {
     if (ch == ',')
@@ -87,41 +90,38 @@ bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens
             tokenText.clear();
         }
         tokens.push_back({TokenType::Separator, ","});
-        currentType = TokenType::Operand;
+        currentType = TokenType::Unknown;
         return true;
     }
     return false;
 }
-
-bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart)
+bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart, bool &inComment)
 {
     if (ch == ' ' || ch == '\t')
     {
-        // Ignore spaces or tabs at the start of a line
-        if (isLabelStart && tokenText.empty())
+        if (!inComment)
         {
-            return false;
+            if (!tokenText.empty())
+            {
+                tokens.push_back({currentType, tokenText});
+                tokenText.clear();
+                currentType = TokenType::Unknown; // Reset the type after a token is completed
+            }
         }
-
-        if (!tokenText.empty())
+        else
         {
-            tokens.push_back({currentType, tokenText});
-            tokenText.clear();
+            // Add spaces/tabs to the comment token
+            tokenText += ch;
         }
-        // Set to Operand only if it's not the start of a line
-        if (!isLabelStart)
-        {
-            currentType = TokenType::Operand;
-        }
-        return true;
+        return true; // Handle the space or tab
     }
-    return false;
+    return false; // Not a space or tab
 }
-
-bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType)
+bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
 {
     if (ch == ';')
     {
+        inComment = true;
         if (!tokenText.empty())
         {
             tokens.push_back({currentType, tokenText});
@@ -132,20 +132,61 @@ bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, 
     }
     return false;
 }
-
-bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart)
+bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart, bool &inComment)
 {
     if (ch == '\n')
     {
-        isLabelStart = true;
-        if (!tokenText.empty())
+        if (inComment)
         {
-            tokens.push_back({currentType, tokenText});
+            // Add the comment token to the list
+            tokens.push_back({TokenType::Comment, tokenText});
             tokenText.clear();
         }
+        isLabelStart = true;
+        inComment = false;
         tokens.push_back({TokenType::EndOfLine, "\n"});
-        currentType = TokenType::Mnemonic;
+        currentType = TokenType::Unknown;
         return true;
     }
     return false;
+}
+TokenType determineTokenType(const std::string &tokenText, bool isLabelStart)
+{
+    if (tokenText.empty())
+        return TokenType::Unknown;
+
+    // Check for comment
+    if (tokenText[0] == ';')
+        return TokenType::Comment;
+
+    // Check for label
+    if (isLabelStart && tokenText.back() == ':')
+        return TokenType::Label;
+
+    // Add more specific checks for mnemonics, directives, etc., as per your language rules
+
+    // Default to Operand if none of the above
+    return TokenType::Operand;
+}
+std::string tokenTypeToString(TokenType type)
+{
+    switch (type)
+    {
+    case TokenType::Mnemonic:
+        return "Mnemonic";
+    case TokenType::Operand:
+        return "Operand";
+    case TokenType::Label:
+        return "Label";
+    case TokenType::Directive:
+        return "Directive";
+    case TokenType::Separator:
+        return "Separator";
+    case TokenType::Comment:
+        return "Comment";
+    case TokenType::EndOfLine:
+        return "EndOfLine";
+    default:
+        return "Unknown";
+    }
 }

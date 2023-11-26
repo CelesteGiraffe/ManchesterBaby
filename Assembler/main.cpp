@@ -20,6 +20,7 @@ int main()
     tokenizedAssembly = lex(code);
     for (const auto &element : tokenizedAssembly)
     {
+        std::cout << tokenTypeToString(element.type) << ": ";
         std::cout << element.text << " ";
     }
     std::cout << std::endl;
