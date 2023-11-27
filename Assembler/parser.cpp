@@ -1,83 +1,65 @@
-#include <vector>
-#include <string>
-#include "lexer.h"
+#include "Parser.h"
 #include <iostream>
 
-// fuction declerations
-void checkMnemonicsType(std::string &mnemonic);
-void processLine(const std::string &mnemonic, const std::string &operand,
-                 const std::string &label, const std::string &directive,
-                 const std::string &separator, const std::string &comment);
+Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens) {}
 
-void parseTokens(const std::vector<Token> &tokens)
+void Parser::parse()
 {
-    std::string mnemonic, operand, label, directive, separator, comment;
-
-    for (const auto &token : tokens)
+    while (!isAtEnd())
     {
-        switch (token.type)
-        {
-        case TokenType::Mnemonic:
-            mnemonic = token.text;
-            // checkMnemonicsType(mnemonic);
-            break;
-        case TokenType::Operand:
-            operand = token.text;
-            break;
-        case TokenType::Label:
-            label = token.text;
-            break;
-        case TokenType::Directive:
-            directive = token.text;
-            break;
-        case TokenType::Separator:
-            separator = token.text;
-            break;
-        case TokenType::Comment:
-            comment = token.text;
-            break;
-        case TokenType::EndOfLine:
-            // Perform operations with collected data here
-            processLine(mnemonic, operand, label, directive, separator, comment);
-
-            // Reset variables for the next line
-            mnemonic = operand = label = directive = separator = comment = "";
-            break;
-        }
-    }
-
-    if (!mnemonic.empty() || !operand.empty() || !label.empty() ||
-        !directive.empty() || !separator.empty() || !comment.empty())
-    {
-        processLine(mnemonic, operand, label, directive, separator, comment);
+        parseLine();
     }
 }
 
-void processLine(const std::string &mnemonic, const std::string &operand,
-                 const std::string &label, const std::string &directive,
-                 const std::string &separator, const std::string &comment)
+void Parser::advance()
 {
+    if (!isAtEnd())
+        currentToken = tokens[currentTokenIndex++];
 }
 
-void checkMnemonicsType(std::string &mnemonic)
+bool Parser::isAtEnd()
 {
-    // List of valid mnemonics for the Manchester Baby
-    const std::string validMnemonics[] = {"JMP", "JRP", "LDN", "STO", "SUB", "CMP", "STP"};
+    return currentTokenIndex >= tokens.size();
+}
 
-    // Check if the mnemonic is in the list of valid mnemonics
-    bool isValid = false;
-    for (const auto &validMnemonic : validMnemonics)
+void Parser::parseLine()
+{
+    advance();
+    switch (currentToken.type)
     {
-        if (mnemonic == validMnemonic)
-        {
-            isValid = true;
-            break;
-        }
+    case TokenType::Mnemonic:
+        parseInstruction();
+        break;
+    case TokenType::Label:
+        parseLabel();
+        break;
+    case TokenType::EndOfLine:
+        advance();
+        break;
+    default:
+        std::cout << "Invalid Token Type" << std::endl;
+        break;
     }
+}
 
-    // Handle the case where the mnemonic is not valid
-    if (!isValid)
+void Parser::parseInstruction()
+{
+    std::cout << "Instruction: " << currentToken.text << std::endl;
+    advance();
+    parseOperand();
+}
+
+void Parser::parseOperand()
+{
+    if (currentToken.type == TokenType::Operand)
     {
-        std::cerr << "Invalid mnemonic: " << mnemonic << std::endl;
+        std::cout << "Operand: " << currentToken.text << std::endl;
+        advance();
     }
+}
+
+void Parser::parseLabel()
+{
+    std::cout << "Label: " << currentToken.text << std::endl;
+    advance();
 }
