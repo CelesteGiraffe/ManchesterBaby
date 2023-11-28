@@ -2,10 +2,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include "token.h"
-
-std::vector<std::string> mnemonics = {"JMP", "JRP", "LDN", "STO", "SUB", "CPM", "STP"};
-std::vector<std::string> directives = {"VAR"};
 
 class Lexer
 {

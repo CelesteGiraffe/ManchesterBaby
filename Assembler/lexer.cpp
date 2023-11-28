@@ -1,5 +1,8 @@
 #include "lexer.h"
 
+std::vector<std::string> mnemonics = {"JMP", "JRP", "LDN", "STO", "SUB", "CPM", "STP"};
+std::vector<std::string> directives = {"VAR"};
+
 Lexer::Lexer(const std::string &input) : input(input) {}
 
 std::vector<Token> Lexer::tokenize()
@@ -32,7 +35,7 @@ std::vector<Token> Lexer::tokenize()
 }
 
 // token handlers
-bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType)
+bool Lexer::handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType)
 {
     if (isLabelStart && ch != ' ' && ch != '\t')
     {
@@ -50,7 +53,7 @@ bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bo
     }
     return false;
 }
-bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
+bool Lexer::handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
 {
     if (ch == ',' && !inComment)
     {
@@ -65,7 +68,7 @@ bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens
     }
     return false;
 }
-bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart, bool &inComment)
+bool Lexer::handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart, bool &inComment)
 {
     if (ch == ' ' || ch == '\t')
     {
@@ -87,7 +90,7 @@ bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &token
     }
     return false; // Not a space or tab
 }
-bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
+bool Lexer::handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
 {
     if (ch == ';')
     {
@@ -102,7 +105,7 @@ bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, 
     }
     return false;
 }
-bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart, bool &inComment)
+bool Lexer::handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart, bool &inComment)
 {
     if (ch == '\n')
     {
@@ -120,7 +123,7 @@ bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, 
     }
     return false;
 }
-TokenType determineTokenType(const std::string &tokenText, bool isLabelStart, bool &isAfterCommandWord)
+TokenType Lexer::determineTokenType(const std::string &tokenText, bool isLabelStart, bool &isAfterCommandWord)
 {
     if (tokenText.empty())
         return TokenType::Unknown;
@@ -171,7 +174,7 @@ TokenType determineTokenType(const std::string &tokenText, bool isLabelStart, bo
 }
 
 // utility functions
-std::string tokenTypeToString(TokenType type)
+std::string Lexer::tokenTypeToString(TokenType type)
 {
     switch (type)
     {

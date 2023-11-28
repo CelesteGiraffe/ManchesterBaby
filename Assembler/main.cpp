@@ -1,24 +1,16 @@
-#include "lexer.h"
-#include "parser.h"
-#include "codeGen.h"
-#include "writer.h"
-
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <iostream>
-
-// function decliration
-std::string readFileIntoString(const std::string &path);
+#include "main.h"
 
 int main()
 {
     std::string filePath = "babytest.txt";
     std::string code = readFileIntoString(filePath);
-    // get some text file to pass to the lexer
     std::vector<Token> tokenizedAssembly;
-    tokenizedAssembly = lex(code);
-    // pass the tokenizedAssembly to the parcer
+
+    Lexer lexer(code);
+    tokenizedAssembly = lexer.tokenize();
+
+    // logLexerTokensToConsole(tokenizedAssembly, lexer); // Used for testing and understanding of code.
+
     Parser parser(tokenizedAssembly);
     parser.parse();
     // Then we take that List of instrctions that comes out of the parcer and pass it to gthe code gen to turn that into binary to be writen
@@ -27,7 +19,7 @@ int main()
     // writeFile(mCode)
     return 0;
 }
-
+// utility functions
 std::string readFileIntoString(const std::string &path)
 {
     std::ifstream fileStream(path);
@@ -41,4 +33,15 @@ std::string readFileIntoString(const std::string &path)
     std::stringstream stringStream;
     stringStream << fileStream.rdbuf();
     return stringStream.str();
+}
+
+// logging functions
+void logLexerTokensToConsole(std::vector<Token> tokens, Lexer lexer)
+{
+    for (const auto &element : tokens)
+    {
+        std::cout << lexer.tokenTypeToString(element.type) << ": ";
+        std::cout << element.text << " ";
+    }
+    std::cout << std::endl;
 }
