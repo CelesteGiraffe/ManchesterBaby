@@ -65,7 +65,18 @@ void Parser::parseInstruction()
     }
     else if (mnemonic == Mnemonic::JMP)
     {
-        // call Mnemonic with the variable
+        if (isLabel(currentToken.text)) // You need to implement isLabel to check if the token is a label
+        {
+            int address = resolveLabel(currentToken.text); // Implement resolveLabel to get the address for the label
+            std::string result = mnemonicHandler.parse(mnemonic, address);
+            std::cout << "result of parsing JMP with label: " << result << std::endl;
+        }
+        else
+        {
+            int address = std::stoi(currentToken.text); // Convert the address to an integer directory, may be HEX does not work.
+            std::string result = mnemonicHandler.parse(mnemonic, address);
+            std::cout << "result of parsing JMP with address: " << result << std::endl;
+        }
     }
 }
 void Parser::parseOperand()
@@ -107,4 +118,15 @@ Mnemonic Parser::stringToMnemonic(const std::string &str)
         return Mnemonic::STP;
     else
         return Mnemonic::Unknown;
+}
+
+bool Parser::isLabel(const std::string &token)
+{
+    // Check if the first character is a letter
+    if (!std::isalpha(token[0]))
+        return false;
+
+    // Check if the rest of the characters are alphanumeric or underscore
+    return std::all_of(token.begin(), token.end(), [](char c)
+                       { return std::isalnum(c) || c == '_'; });
 }

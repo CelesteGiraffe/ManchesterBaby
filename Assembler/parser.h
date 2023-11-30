@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <map>
 #include "token.h"
 #include "mnemonic.h"
 #include "mnemonicHandler.h"
@@ -19,6 +21,7 @@ private:
     unsigned int currentTokenIndex = 0;
     Token currentToken;
     MnemonicHandler mnemonicHandler;
+    std::map<std::string, int> symbolTable;
 
     void advance();
     bool isAtEnd();
@@ -31,5 +34,7 @@ private:
     void parseComment();
 
     // utility functions
-    Mnemonic stringToMnemonic(const std::string &str);
+    Mnemonic Parser::stringToMnemonic(const std::string &str);
+    bool Parser::isLabel(const std::string &token);
+    int Parser::resolveLabel(const std::string &label);
 };

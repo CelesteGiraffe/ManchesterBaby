@@ -11,7 +11,7 @@ public:
     std::string parse(Mnemonic, int);
 
 private:
-    std::string handleJMP(int address);
+    std::string handleJMP(int);
     std::string handleJRP();
     std::string handleLDN();
     std::string handleSTO();
