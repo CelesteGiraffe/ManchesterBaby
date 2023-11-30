@@ -44,7 +44,7 @@ std::string MnemonicHandler::parse(Mnemonic mnemonic, int address)
     return "";
 }
 
-std::string MnemonicHandler::handleJMP(int addresss)
+std::string MnemonicHandler::handleJMP(int Addresss)
 {
     // do some conversion based on the type of passed variable
     std::string opcode = "000";

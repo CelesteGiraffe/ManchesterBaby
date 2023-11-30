@@ -37,4 +37,6 @@ private:
     Mnemonic Parser::stringToMnemonic(const std::string &str);
     bool Parser::isLabel(const std::string &token);
     int Parser::resolveLabel(const std::string &label);
+
+    void Parser::firstPass(const std::vector<Token> &tokens);
 };

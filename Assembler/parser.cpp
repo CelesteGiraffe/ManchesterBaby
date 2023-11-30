@@ -6,9 +6,12 @@ Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens) {}
 
 void Parser::parse()
 {
+    firstPass(tokens);
+
+    currentTokenIndex = 0;
     while (!isAtEnd())
     {
-        parseLine();
+        parseLine(); // here would be the second pass that would ahve the tokens full
     }
 }
 
@@ -35,10 +38,8 @@ void Parser::parseLine()
         parseOperand();
         break;
     case TokenType::Label:
-        parseLabel();
         break;
     case TokenType::Directive:
-        parseDirective();
         break;
     case TokenType::Separator:
         parseSeparator();
@@ -65,15 +66,15 @@ void Parser::parseInstruction()
     }
     else if (mnemonic == Mnemonic::JMP)
     {
-        if (isLabel(currentToken.text)) // You need to implement isLabel to check if the token is a label
+        if (isLabel(currentToken.text))
         {
-            int address = resolveLabel(currentToken.text); // Implement resolveLabel to get the address for the label
-            std::string result = mnemonicHandler.parse(mnemonic, address);
+            int address = resolveLabel(currentToken.text) + 2;
+            std::string result = mnemonicHandler.parse(mnemonic, address); // remember that if there is a directive VAR then the label is a value and would need address + 2
             std::cout << "result of parsing JMP with label: " << result << std::endl;
         }
         else
         {
-            int address = std::stoi(currentToken.text); // Convert the address to an integer directory, may be HEX does not work.
+            int address = std::stoi(currentToken.text); // Convert the address to an integer directly, may be HEX and that does not work yet.
             std::string result = mnemonicHandler.parse(mnemonic, address);
             std::cout << "result of parsing JMP with address: " << result << std::endl;
         }
@@ -81,23 +82,23 @@ void Parser::parseInstruction()
 }
 void Parser::parseOperand()
 {
-    // std::cout << "Operand: " << currentToken.text << std::endl;
+    std::cout << "Operand: " << currentToken.text << std::endl;
 }
 void Parser::parseLabel()
 {
-    // std::cout << "Label: " << currentToken.text << std::endl;
+    std::cout << "Label: " << currentToken.text << std::endl;
 }
 void Parser::parseDirective()
 {
-    // std::cout << "Directive: " << currentToken.text << std::endl;
+    std::cout << "Directive: " << currentToken.text << std::endl;
 }
 void Parser::parseSeparator()
 {
-    // std::cout << "Separator: " << currentToken.text << std::endl;
+    std::cout << "Separator: " << currentToken.text << std::endl;
 }
 void Parser::parseComment()
 {
-    // std::cout << "Comment: " << currentToken.text << std::endl;
+    std::cout << "Comment: " << currentToken.text << std::endl;
 }
 
 Mnemonic Parser::stringToMnemonic(const std::string &str)
@@ -129,4 +130,27 @@ bool Parser::isLabel(const std::string &token)
     // Check if the rest of the characters are alphanumeric or underscore
     return std::all_of(token.begin(), token.end(), [](char c)
                        { return std::isalnum(c) || c == '_'; });
+}
+
+int Parser::resolveLabel(const std::string &label)
+{
+    auto it = symbolTable.find(label);
+    if (it != symbolTable.end())
+        return it->second; // Return the address associated with the label
+    else
+        throw std::runtime_error("Label not found: " + label);
+}
+
+void Parser::firstPass(const std::vector<Token> &tokens)
+{
+    int currentAddress = 0;
+    for (size_t i = 0; i < tokens.size(); i++)
+    {
+        const Token &token = tokens[i];
+        if (token.type == TokenType::Label)
+        {
+            symbolTable[token.text] = currentAddress;
+        }
+        currentAddress++;
+    }
 }
