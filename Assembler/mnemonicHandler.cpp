@@ -44,12 +44,14 @@ std::string MnemonicHandler::parse(Mnemonic mnemonic, int address)
     return "";
 }
 
-std::string MnemonicHandler::handleJMP(int Addresss)
+std::string MnemonicHandler::handleJMP(int address)
 {
     // do some conversion based on the type of passed variable
     std::string opcode = "000";
+    std::string binaryAddress = std::bitset<13>(address).to_string(); // 13-bit binary
     std::cout << "Handling JMP instruction" << std::endl;
-    return opcode;
+    std::string binary;
+    return opcode + binary;
 }
 std::string MnemonicHandler::handleJRP()
 {

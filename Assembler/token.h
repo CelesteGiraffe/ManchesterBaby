@@ -9,9 +9,8 @@ enum class TokenType
     Separator, // Separates operands
     Comment,   // After a ; it's a comment that dinotes what's being done in the code
     EndOfLine, // Executes a single command with a carrage return.
-    Unknown
+    Unknown    // used for error handling  TokenType type;
 };
-
 struct Token
 {
     TokenType type;

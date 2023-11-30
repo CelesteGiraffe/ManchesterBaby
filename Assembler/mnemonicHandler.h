@@ -2,6 +2,7 @@
 #include "mnemonic.h"
 #include <string>
 #include <iostream>
+#include <bitset>
 
 class MnemonicHandler
 {
