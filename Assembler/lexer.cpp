@@ -1,45 +1,12 @@
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <iostream>
-
-enum class TokenType
-{
-    Mnemonic,  // Instruction example MOV
-    Operand,   // Things passed to a Mnemonic
-    Label,     // Marks positions in the code
-    Directive, // Controls how the assimbly processes data (might not be needed for the project)
-    Separator, // Separates operands
-    Comment,   // After a ; it's a comment that dinotes what's being done in the code
-    EndOfLine, // Executes a single command with a carrage return.
-    Unknown
-};
-
-struct Token
-{
-    TokenType type;
-    std::string text;
-};
+#include "lexer.h"
 
 std::vector<std::string> mnemonics = {"JMP", "JRP", "LDN", "STO", "SUB", "CPM", "STP"};
 std::vector<std::string> directives = {"VAR"};
 
-// function declirations
-bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType);
-bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment);
-bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart, bool &inComment);
-bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment);
-bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart, bool &inComment);
-TokenType determineTokenType(const std::string &tokenText, bool isLabelStart);
+Lexer::Lexer(const std::string &input) : input(input) {}
 
-std::vector<Token> lex(const std::string &input)
+std::vector<Token> Lexer::tokenize()
 {
-    std::vector<Token> tokens;
-    std::string tokenText;
-    TokenType currentType = TokenType::Unknown; // Start as Unknown
-    bool isLabelStart = true;
-    bool inComment = false;
-
     for (char ch : input)
     {
         if (handleLabel(ch, tokenText, tokens, isLabelStart, currentType) ||
@@ -55,8 +22,7 @@ std::vector<Token> lex(const std::string &input)
             tokenText += ch;
             if (currentType == TokenType::Unknown)
             {
-                // Determine type based on first non-space character
-                currentType = determineTokenType(tokenText, isLabelStart);
+                currentType = determineTokenType(tokenText, isLabelStart, isAfterCommandWord);
             }
         }
     }
@@ -67,7 +33,9 @@ std::vector<Token> lex(const std::string &input)
     }
     return tokens;
 }
-bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType)
+
+// token handlers
+bool Lexer::handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bool &isLabelStart, TokenType &currentType)
 {
     if (isLabelStart && ch != ' ' && ch != '\t')
     {
@@ -85,7 +53,7 @@ bool handleLabel(char ch, std::string &tokenText, std::vector<Token> &tokens, bo
     }
     return false;
 }
-bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
+bool Lexer::handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
 {
     if (ch == ',' && !inComment)
     {
@@ -100,7 +68,7 @@ bool handleSeparator(char ch, std::string &tokenText, std::vector<Token> &tokens
     }
     return false;
 }
-bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart, bool &inComment)
+bool Lexer::handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool isLabelStart, bool &inComment)
 {
     if (ch == ' ' || ch == '\t')
     {
@@ -110,7 +78,7 @@ bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &token
             {
                 tokens.push_back({currentType, tokenText});
                 tokenText.clear();
-                currentType = TokenType::Unknown; // Reset the type after a token is completed
+                currentType = TokenType::Unknown;
             }
         }
         else
@@ -122,7 +90,7 @@ bool handleSpaceOrTab(char ch, std::string &tokenText, std::vector<Token> &token
     }
     return false; // Not a space or tab
 }
-bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
+bool Lexer::handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &inComment)
 {
     if (ch == ';')
     {
@@ -137,7 +105,7 @@ bool handleComment(char ch, std::string &tokenText, std::vector<Token> &tokens, 
     }
     return false;
 }
-bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart, bool &inComment)
+bool Lexer::handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, TokenType &currentType, bool &isLabelStart, bool &inComment)
 {
     if (ch == '\n')
     {
@@ -155,38 +123,58 @@ bool handleNewLine(char ch, std::string &tokenText, std::vector<Token> &tokens, 
     }
     return false;
 }
-TokenType determineTokenType(const std::string &tokenText, bool isLabelStart)
+TokenType Lexer::determineTokenType(const std::string &tokenText, bool isLabelStart, bool &isAfterCommandWord)
 {
     if (tokenText.empty())
         return TokenType::Unknown;
 
+    // Check for comments
     if (tokenText[0] == ';')
         return TokenType::Comment;
 
+    // Check for labels
     if (isLabelStart && tokenText.back() == ':')
         return TokenType::Label;
 
+    // Check for number tokens, assuming they are always operands
+    if (std::all_of(tokenText.begin(), tokenText.end(), ::isdigit))
+        return TokenType::Operand;
+
+    // Any token immediately after a command word is an operand
+    if (isAfterCommandWord)
+    {
+        isAfterCommandWord = false; // Reset the flag
+        return TokenType::Operand;
+    }
+
+    // Check for mnemonics and directives
     if (tokenText.length() == 3)
     {
         for (const auto &mnemonic : mnemonics)
         {
             if (tokenText == mnemonic)
+            {
+                isAfterCommandWord = true;
                 return TokenType::Mnemonic;
+            }
         }
 
         for (const auto &directive : directives)
         {
             if (tokenText == directive)
+            {
+                isAfterCommandWord = true;
                 return TokenType::Directive;
+            }
         }
     }
 
-    if (std::all_of(tokenText.begin(), tokenText.end(), ::isdigit))
-        return TokenType::Operand; // Assuming all numbers are operands here
-
-    return TokenType::Unknown; // Default to Operand
+    // Fallback case for unknown token types
+    return TokenType::Unknown;
 }
-std::string tokenTypeToString(TokenType type)
+
+// utility functions
+std::string Lexer::tokenTypeToString(TokenType type)
 {
     switch (type)
     {
