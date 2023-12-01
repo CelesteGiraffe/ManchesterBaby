@@ -10,12 +10,7 @@ string binToDec(string bin)
     int hold;
     int sign = 1;
 
-    if (bin[0] == 1)
-    {
-        sign = -1;
-        bin = getNegative(bin);
-    }
-    for (int i = bin.length() - 1; i > 0; i--)
+    for (int i = 0; i < bin.length() - 1; i++)
     {
         hold = (int)bin[i];
         hold *= binaryMult;
