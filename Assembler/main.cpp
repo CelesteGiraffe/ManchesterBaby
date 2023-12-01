@@ -1,4 +1,5 @@
 #include "main.h"
+#include "writer.h"
 
 int main()
 {
@@ -13,10 +14,12 @@ int main()
 
     Parser parser(tokenizedAssembly);
     parser.parse();
+    std::cout << parser.GetBuiltMachineCodeString();
+    std::string writerCode;
     // Then we take that List of instrctions that comes out of the parcer and pass it to gthe code gen to turn that into binary to be writen
-    // std:string mCode = generateCode(ListOfInstructions)
+    std::string mCode = parser.GetBuiltMachineCodeString();
     // then we take the file and print it using the writer.cpp function that will be included in the header "writer.h"
-    // writeFile(mCode)
+    writeFile(mCode);
     return 0;
 }
 // utility functions

@@ -7,12 +7,21 @@ Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens) {}
 void Parser::parse()
 {
     firstPass(tokens);
+    for (const auto &pair : symbolTable)
+    {
+        std::cout << "Key: " << pair.first << ", Value: " << pair.second << std::endl;
+    }
 
     currentTokenIndex = 0;
     while (!isAtEnd())
     {
         parseLine(); // here would be the second pass that would ahve the tokens full
     }
+}
+
+std::string Parser::GetBuiltMachineCodeString()
+{
+    return returnString;
 }
 
 void Parser::advance()
@@ -35,17 +44,15 @@ void Parser::parseLine()
         parseInstruction();
         break;
     case TokenType::Operand:
-        parseOperand();
         break;
     case TokenType::Label:
         break;
     case TokenType::Directive:
+        parseDirective();
         break;
     case TokenType::Separator:
-        parseSeparator();
         break;
     case TokenType::Comment:
-        parseComment();
         break;
     case TokenType::EndOfLine:
         break;
@@ -64,43 +71,35 @@ void Parser::parseInstruction()
         std::string result = mnemonicHandler.parse(mnemonic);
         std::cout << "result of parsing: " << result << std::endl;
     }
-    else if (mnemonic == Mnemonic::JMP)
+    else if (mnemonic == Mnemonic::JMP || mnemonic == Mnemonic::JRP || mnemonic == Mnemonic::LDN || mnemonic == Mnemonic::STO || mnemonic == Mnemonic::SUB)
     {
-        if (isLabel(currentToken.text))
+        std::string labelToCheck = tokens[currentTokenIndex].text;
+        if (isLabel(labelToCheck))
         {
-            int address = resolveLabel(currentToken.text) + 2;
+            int address = resolveLabel(labelToCheck) + 1;
             std::string result = mnemonicHandler.parse(mnemonic, address); // remember that if there is a directive VAR then the label is a value and would need address + 2
-            std::cout << "result of parsing JMP with label: " << result << std::endl;
+            std::cout << "result of parsing instruction with label: " << result << std::endl;
+            buildString(result);
         }
         else
         {
-            int address = std::stoi(currentToken.text); // Convert the address to an integer directly, may be HEX and that does not work yet.
+            std::string operandText = tokens[currentTokenIndex].text;
+            std::cout << "operandText = " << operandText;
+            int address = std::stoi(operandText); // Convert the address to an integer directly, may be HEX and that does not work yet.
             std::string result = mnemonicHandler.parse(mnemonic, address);
             std::cout << "result of parsing JMP with address: " << result << std::endl;
+            buildString(result);
         }
     }
 }
-void Parser::parseOperand()
-{
-    std::cout << "Operand: " << currentToken.text << std::endl;
-}
-void Parser::parseLabel()
-{
-    std::cout << "Label: " << currentToken.text << std::endl;
-}
 void Parser::parseDirective()
 {
-    std::cout << "Directive: " << currentToken.text << std::endl;
+    std::string opcode = "000";
+    std::string operandString = tokens[currentTokenIndex].text;
+    std::string binaryAddress = std::bitset<13>(std::stoi(operandString)).to_string();
+    std::reverse(binaryAddress.begin(), binaryAddress.end());
+    buildString(binaryAddress + opcode + "0000000000000000");
 }
-void Parser::parseSeparator()
-{
-    std::cout << "Separator: " << currentToken.text << std::endl;
-}
-void Parser::parseComment()
-{
-    std::cout << "Comment: " << currentToken.text << std::endl;
-}
-
 Mnemonic Parser::stringToMnemonic(const std::string &str)
 {
     if (str == "JMP")
@@ -139,6 +138,7 @@ int Parser::resolveLabel(const std::string &label)
         return it->second; // Return the address associated with the label
     else
         throw std::runtime_error("Label not found: " + label);
+    // return 0;
 }
 
 void Parser::firstPass(const std::vector<Token> &tokens)
@@ -153,4 +153,9 @@ void Parser::firstPass(const std::vector<Token> &tokens)
         }
         currentAddress++;
     }
+}
+
+void Parser::buildString(std::string str)
+{
+    returnString.append(str);
 }
