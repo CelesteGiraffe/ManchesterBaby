@@ -1,6 +1,5 @@
 #include "lexer.h"
 #include "parser.h"
-#include "codeGen.h"
 #include "writer.h"
 
 #include <fstream>
