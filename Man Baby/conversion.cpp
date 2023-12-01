@@ -8,7 +8,7 @@ string binToDec(string bin)
     int sum;
     int binaryMult = 1;
     int hold;
-    int sign = 1;
+    //int sign = 1;
 
     for (int i = 0; i < bin.length() - 1; i++)
     {
@@ -18,7 +18,7 @@ string binToDec(string bin)
         binaryMult *= 2;
     }
 
-    sum *= sign;
+    //sum *= sign;
     return to_string(sum);
 }
 
@@ -62,7 +62,7 @@ string getNegative(string twosComp)
 
     string hold;
 
-    for (int i = 0; i < twosComp.length() - 1; i++)
+    for (int i = twosComp.length(); i > 0 - 1; i--)
     {
         if (twosComp[i] == '0')
         {
@@ -74,7 +74,7 @@ string getNegative(string twosComp)
         }
     }
 
-    if (twosComp[twosComp.length()] == '0')
+    if (twosComp[0] == '0')
     {
         hold.append("0");
     }
@@ -84,4 +84,18 @@ string getNegative(string twosComp)
     }
 
     return hold;
+}
+
+string decToBin(string dec){
+    
+    int decInt = stoi(dec);
+    string holdBinary;
+    int sign;
+    string holdBinChar;
+
+    if(decInt<0){
+        sign = -1;
+    }
+
+    
 }
