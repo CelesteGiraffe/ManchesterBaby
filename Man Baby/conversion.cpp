@@ -86,7 +86,7 @@ string getNegative(string twosComp)
     return hold;
 }
 
-string decToBin(string dec){
+string decToBin(string dec){ //UNFINISHED
     
     int decInt = stoi(dec);
     string holdBinary;
