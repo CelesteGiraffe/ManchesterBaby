@@ -27,6 +27,8 @@ array<string,2> decode(string instruction){
 
     array<string,2> mneOperand = {binMne, operand};
 
+    cout << mnemonic + " " + operand;
+
     return mneOperand;
 
 }
@@ -39,18 +41,42 @@ array<int, 2> execute(int accumulator, array<string,2> instruction, int programC
     switch (stoi(instruction[0])){
         case 0:
             externalValues = {accumulator, stoi(instruction[1])};
+            break;
         case 100:
             externalValues = {accumulator, (stoi(instruction[1]) + programCounter)};
+            break;
         case 10:
             holdInt = -(getVarFromFile(filename, stoi(instruction[1])));
 
             accumulator = holdInt;
             externalValues = {accumulator, programCounter};
+            break;
         case 110:
             //TODO
+            break;
+        case 1:
+        case 101:
+
+            accumulator -= getVarFromFile(filename, stoi(instruction[1]));
+
+            externalValues = {accumulator, programCounter};
+            break;
+
+        case 11:
+            if(accumulator < 0){
+                programCounter += 1;
+            }
+
+            externalValues = {accumulator, programCounter};
+            break;
+
+        case 111:
+            externalValues = {accumulator, 64}; //64 is a value well in excess of maximum PC value, so works as a "this is a STOP command" marker
 
 
     }
+
+    return externalValues;
     //000 - JMP S (Jump to instruction obtained from memory address S)
     //100 - JRP S (Jump to instruction at the program counter plus relative value from memory address S) 
     //010 - LDN S (Take number from S, negate it, load into accumulator)
@@ -62,8 +88,14 @@ array<int, 2> execute(int accumulator, array<string,2> instruction, int programC
     
 }
 
-void printout(){
+void printout(int ci, string pi, int accumulator, bool stop){
+    cout << "CI: " + ci + '\n';
+    cout << "PI: " + pi + '\n';
+    cout << "Accumulator: " + accumulator + '\n';
 
+    if(stop){
+        cout << "STOP";
+    }
 }
 
 int getVarFromFile(string filename, int address){
