@@ -1,27 +1,24 @@
 #include "main.h"
-#include "writer.h"
 
 int main()
 {
-    std::string filePath = "babytest.txt";
-    std::string code = readFileIntoString(filePath);
+    std::string inputFilePath = "babytest.txt";
+    std::string outputFilePath = "MCode.txt";
+    std::string code = readFileIntoString(inputFilePath); // Read the asymbly text file
     std::vector<Token> tokenizedAssembly;
 
     Lexer lexer(code);
-    tokenizedAssembly = lexer.tokenize();
-
-    // logLexerTokensToConsole(tokenizedAssembly, lexer); // Used for testing and understanding of code.
-
+    tokenizedAssembly = lexer.tokenize();              // turn the text file into a vector of tokens with TokenType and TokenText
+    logLexerTokensToConsole(tokenizedAssembly, lexer); // Log to show the process of creating these Tokens.
     Parser parser(tokenizedAssembly);
-    parser.parse();
-    std::cout << parser.GetBuiltMachineCodeString();
+    parser.parse();                                  // build the machine code
+    std::cout << parser.GetBuiltMachineCodeString(); // log the machine code to the console directly
     std::string writerCode;
-    // Then we take that List of instrctions that comes out of the parcer and pass it to gthe code gen to turn that into binary to be writen
     std::string mCode = parser.GetBuiltMachineCodeString();
-    // then we take the file and print it using the writer.cpp function that will be included in the header "writer.h"
-    writeFile(mCode);
+    writeFile(mCode, outputFilePath); // write to the  outputFilePath
     return 0;
 }
+
 // utility functions
 std::string readFileIntoString(const std::string &path)
 {
