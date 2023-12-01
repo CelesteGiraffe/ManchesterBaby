@@ -15,6 +15,7 @@ class Parser
 public:
     Parser(const std::vector<Token> &tokens);
     void parse();
+    std::string GetBuiltMachineCodeString();
 
 private:
     std::vector<Token> tokens;
@@ -22,6 +23,8 @@ private:
     Token currentToken;
     MnemonicHandler mnemonicHandler;
     std::map<std::string, int> symbolTable;
+
+    std::string returnString;
 
     void advance();
     bool isAtEnd();
@@ -34,9 +37,10 @@ private:
     void parseComment();
 
     // utility functions
-    Mnemonic Parser::stringToMnemonic(const std::string &str);
-    bool Parser::isLabel(const std::string &token);
-    int Parser::resolveLabel(const std::string &label);
+    Mnemonic stringToMnemonic(const std::string &str);
+    bool isLabel(const std::string &token);
+    int resolveLabel(const std::string &label);
 
-    void Parser::firstPass(const std::vector<Token> &tokens);
+    void firstPass(const std::vector<Token> &tokens);
+    void buildString(std::string str);
 };
