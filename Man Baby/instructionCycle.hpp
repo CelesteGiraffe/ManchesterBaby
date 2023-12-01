@@ -10,4 +10,8 @@ array<int,2> decode(string instruction);
 
 int execute(int accumulator, array<int,2> instruction, int programCounter);
 
-void printout();
+void printout(int ci, string pi, int accumulator, bool stop);
+
+int getVarFromFile(string filename, int address);
+
+void storeValue(string filename, int address);
